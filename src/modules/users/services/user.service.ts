@@ -6,6 +6,7 @@ import { CreateUserDto } from '../dto/create-user.dto';
 import { compare, genSalt, hash } from 'bcrypt';
 import { ValidationError } from '../../../errors/ValidationError';
 import { LoginUserDto } from '../dto/login-user.dto';
+import { JWTHelper } from '../../../helpers/JWTHelper';
 
 @Injectable()
 export class UsersService {
@@ -48,10 +49,16 @@ export class UsersService {
       throw Error('Password is invalid');
     }
     const tokens = {
-      accessToken: await hash(user.email, 10),
-      refreshToken: await hash(user.name, 10),
+      accessToken: JWTHelper.generateAccessToken(user.email),
+      refreshToken: JWTHelper.generateRefreshToken(user.email),
     };
     await this.usersRepository.update({ email: user.email }, tokens);
     return tokens;
+  }
+
+  public async renewAccessToken(email: string) {
+    const accessToken = JWTHelper.generateAccessToken(email);
+    await this.usersRepository.update({ email }, { accessToken });
+    return accessToken;
   }
 }
