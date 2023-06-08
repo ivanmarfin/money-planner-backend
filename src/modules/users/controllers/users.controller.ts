@@ -15,15 +15,28 @@ import { LoginUserDto } from '../dto/login-user.dto';
 import { Request, Response } from 'express';
 import { JWTHelper } from '../../../helpers/JWTHelper';
 import { endWithStatus } from '../../../helpers/ResponseHelper';
+import { TransactionsService } from '../../transactions/services/transactions.service';
+import { User } from "../entities/user.entity";
 
 @Controller('users')
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private transactionsService: TransactionsService,
+  ) {}
 
   @Get()
   public async getUser(@Req() request: Request) {
-    const { name, surname, email } = await this.usersService.getCurrentUser(request);
+    const { name, surname, email } = await this.usersService.getCurrentUser(
+      request,
+    );
     return { name, surname, email };
+  }
+
+  @Get('balance')
+  public async getUserBalance(@Req() request: Request): Promise<number> {
+    const user: User = await this.usersService.getCurrentUser(request);
+    return await this.transactionsService.getBalance(user);
   }
 
   @Post('login')

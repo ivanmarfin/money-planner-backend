@@ -42,4 +42,20 @@ export class TransactionsService {
   async getConsumptions(user: User): Promise<Consumption[]> {
     return await this.consumptionRepository.findBy({ user: user.id });
   }
+
+  public async getBalance(user: User): Promise<number> {
+    const [incomes, consumptions] = await Promise.all([
+      this.getIncomes(user),
+      this.getConsumptions(user),
+    ]);
+    const incomesSum = incomes.reduce(
+      (acc: number, cur: Income) => (acc += cur.sum),
+      0,
+    );
+    const consumptionsSum = consumptions.reduce(
+      (acc: number, cur: Consumption) => (acc += cur.sum),
+      0,
+    );
+    return incomesSum - consumptionsSum;
+  }
 }
