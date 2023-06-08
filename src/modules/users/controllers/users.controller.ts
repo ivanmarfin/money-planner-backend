@@ -13,7 +13,6 @@ import { UsersService } from '../services/user.service';
 import { ValidationError } from '../../../errors/ValidationError';
 import { LoginUserDto } from '../dto/login-user.dto';
 import { Request, Response } from 'express';
-import { DecodedToken } from '../../../types/decodedToken';
 import { JWTHelper } from '../../../helpers/JWTHelper';
 import { endWithStatus } from '../../../helpers/ResponseHelper';
 
@@ -32,9 +31,11 @@ export class UsersController {
     @Body() loginUserDto: LoginUserDto,
     @Res({ passthrough: true }) response: Response,
   ): Promise<void> {
-    const tokens = await this.usersService.login(loginUserDto);
-    response.cookie('access_token', tokens.accessToken);
-    response.cookie('refresh_token', tokens.refreshToken);
+    const { accessToken, refreshToken } = await this.usersService.login(
+      loginUserDto,
+    );
+    response.cookie('access_token', accessToken);
+    response.cookie('refresh_token', refreshToken);
   }
 
   @Post('register')
