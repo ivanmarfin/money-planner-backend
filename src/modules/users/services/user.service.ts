@@ -7,6 +7,7 @@ import { compare, genSalt, hash } from 'bcrypt';
 import { ValidationError } from '../../../errors/ValidationError';
 import { LoginUserDto } from '../dto/login-user.dto';
 import { JWTHelper } from '../../../helpers/JWTHelper';
+import { Request } from 'express';
 
 @Injectable()
 export class UsersService {
@@ -14,10 +15,6 @@ export class UsersService {
     @InjectRepository(User)
     private usersRepository: Repository<User>,
   ) {}
-
-  findAll(): Promise<User[]> {
-    return this.usersRepository.find();
-  }
 
   public async findOneByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOneBy({ email });
@@ -60,5 +57,13 @@ export class UsersService {
     const accessToken = JWTHelper.generateAccessToken(email);
     await this.usersRepository.update({ email }, { accessToken });
     return accessToken;
+  }
+
+  public async getCurrentUser(request: Request): Promise<User> {
+    const { access_token } = request.cookies;
+    const { email } = JWTHelper.decodeToken(access_token);
+    const user = await this.findOneByEmail(email);
+    if (user) return user;
+    throw new Error('User not found');
   }
 }

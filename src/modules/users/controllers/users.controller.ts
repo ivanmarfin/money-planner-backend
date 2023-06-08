@@ -21,8 +21,9 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Get()
-  public async getUser() {
-    return 'User';
+  public async getUser(@Req() request: Request) {
+    const { name, surname, email } = await this.usersService.getCurrentUser(request);
+    return { name, surname, email };
   }
 
   @Post('login')
